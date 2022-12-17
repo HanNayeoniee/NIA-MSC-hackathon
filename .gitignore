@@ -187,3 +187,4 @@ poetry.toml
 *.tar.gz
 dataset/
 model/
+runs/

@@ -131,11 +131,11 @@ def main():
     )
     
     # Add special tokens
-    special_tokens_dict = {'additional_special_tokens': ['<USER>', '<AGENT>', '<KEYWORD>', '<GUIDE>', '<STYLE>', '<EMPTY>', '<DIAL>']}
+    special_tokens_dict = {'additional_special_tokens': ['<user>', '<agent>', '<memory>', '</memory>', '<empty>', '<dialogue>', '</dialogue>']}
     tokenizer.add_special_tokens(special_tokens_dict)
     print("#" * 30)
     print("Len tokenzier ==> ", len(tokenizer))
-    print(tokenizer.tokenize("안녕하세요 <USER> <AGENT> <KEYWORD> <GUIDE> <STYLE> <EMPTY> <DIAL>"))
+    print(tokenizer.tokenize("안녕하세요 <user> <agent> <memory> </memory> <empty> <dialogue> </dialogue>"))
     print()
     print()
 
