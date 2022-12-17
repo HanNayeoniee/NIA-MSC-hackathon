@@ -279,7 +279,7 @@ def main():
         ),
         compute_metrics=compute_metrics_fn,
         tokenizer=tokenizer,
-        
+        train_dataloader=training_args.train_dataloader        
     )
 
     

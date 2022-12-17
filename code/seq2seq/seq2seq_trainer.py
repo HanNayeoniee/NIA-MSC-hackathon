@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
 from torch import nn
-from torch.utils.data import DistributedSampler, RandomSampler
+from torch.utils.data import DistributedSampler, RandomSampler, SequentialSampler
 
 from transformers import PreTrainedModel, Trainer, logging
 from transformers.file_utils import is_torch_tpu_available
@@ -53,7 +53,7 @@ arg_to_scheduler = {
 
 
 class Seq2SeqTrainer(Trainer):
-    def __init__(self, config=None, data_args=None, *args, **kwargs):
+    def __init__(self, train_dataloader, config=None, data_args=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if config is None:
@@ -66,6 +66,7 @@ class Seq2SeqTrainer(Trainer):
 
         self.data_args = data_args
         self.vocab_size = self.config.tgt_vocab_size if isinstance(self.config, FSMTConfig) else self.config.vocab_size
+        self.train_dataloader = train_dataloader
 
         if self.args.label_smoothing != 0 or (self.data_args is not None and self.data_args.ignore_pad_token_for_loss):
             assert (
@@ -153,11 +154,16 @@ class Seq2SeqTrainer(Trainer):
                     distributed=(self.args.parallel_mode == ParallelMode.DISTRIBUTED),
                 )
 
-            return (
-                RandomSampler(self.train_dataset)
-                if self.args.local_rank == -1
-                else DistributedSampler(self.train_dataset)
-            )
+            # "sequential인 경우에는 데이터 순서대로 로드"
+            if self.train_dataloader == "sequential":
+                return SequentialSampler(self.train_dataset)  
+            else:
+                # return RandomSampler(self.train_dataset)
+                return (
+                    RandomSampler(self.train_dataset)
+                    if self.args.local_rank == -1
+                    else DistributedSampler(self.train_dataset)
+                )
 
     def _compute_loss(self, model, inputs, labels):
         if self.args.label_smoothing == 0:
