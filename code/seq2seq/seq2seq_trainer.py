@@ -53,7 +53,7 @@ arg_to_scheduler = {
 
 
 class Seq2SeqTrainer(Trainer):
-    def __init__(self, train_dataloader, config=None, data_args=None, *args, **kwargs):
+    def __init__(self, train_dataloader=None, config=None, data_args=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if config is None:

@@ -86,15 +86,14 @@ class Seq2SeqTrainingArguments(TrainingArguments):
         default=1,
         metadata={"help": "The number of GPUs used by this process."},
     )
-    parallel_mode: [str] = field(
+    parallel_mode: Optional[str] = field(
         default="ParallelMode.NOT_PARALLEL",
         metadata={"help": "The current mode used for parallelism if multiple GPUs/TPU cores are available. \
                     (ParallelMode.NOT_DISTRIBUTED for several GPUs in one single process which uses torch.nn.DataParallel)"}
-        # ParallelMode.NOT_DISTRIBUTED
     )
 
     # data를 순차적으로(sequential) 로드하기 위한 파라미터 추가
-    train_dataloader: str = field(
+    train_dataloader: Optional[str] = field(
         default="random",
         metadata={"help": "The current mode used to load train data. (sequential-SequentialSampler, random-RandomSampler)"}
     )
