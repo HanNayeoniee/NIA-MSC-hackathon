@@ -67,6 +67,7 @@ def handle_metrics(split, metrics, output_dir):
     """
 
     logger.info(f"***** {split} metrics *****")
+    logger.info("***** " + split + " metrics *****")
     for key in sorted(metrics.keys()):
         logger.info(f"  {key} = {metrics[key]}")
     save_json(metrics, os.path.join(output_dir, f"{split}_results.json"))
@@ -87,7 +88,7 @@ def main():
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     training_args.output_dir = '/'.join(data_args.output_fpath.split('/')[:-1])
-    model_args.model_name_or_path = data_args.trained_model
+    model_args.model_name_or_path = data_args.pretrained_model
     
     check_output_dir(training_args)
 
@@ -152,7 +153,12 @@ def main():
         processor = seq2seq_jsonl_Processor()
     
     dataset_class = Seq2SeqDataset_ET5
-    compute_metrics_fn = (build_compute_metrics_fn_et5(tokenizer, list_label) if training_args.predict_with_generate else None)
+    
+    if training_args.predict_with_generate:
+        compute_metrics_fn = build_compute_metrics_fn_et5(tokenizer)
+    else:
+        compute_metrics_fn = None
+
     if training_args.do_predict == False and training_args.predict_with_generate:
         compute_metrics_fn = None
     ##########
