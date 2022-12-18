@@ -90,5 +90,10 @@ class Seq2SeqTrainingArguments(TrainingArguments):
         default="ParallelMode.NOT_PARALLEL",
         metadata={"help": "The current mode used for parallelism if multiple GPUs/TPU cores are available. \
                     (ParallelMode.NOT_DISTRIBUTED for several GPUs in one single process which uses torch.nn.DataParallel)"}
-        # ParallelMode.NOT_DISTRIBUTED
+    )
+
+    # data를 순차적으로(sequential) 로드하기 위한 파라미터 추가
+    train_dataloader: Optional[str] = field(
+        default="random",
+        metadata={"help": "The current mode used to load train data. (sequential-SequentialSampler, random-RandomSampler)"}
     )

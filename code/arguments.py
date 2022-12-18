@@ -40,14 +40,6 @@ class DataTrainingArguments:
         default="seq2seq_jsonl",
         metadata={"help": "mode of data processing"}
     )
-    # data_name: str = field(
-    #     # default="klue_ner",
-    #     metadata={"help": "data name"}
-    # )
-    # file_type: str = field(   
-    #     default = None,     
-    #     metadata={"help": "data name"}
-    # )
     data_dir: str = field(
         default = "",
         metadata={"help": "The input data dir. Should contain the .tsv files (or other data files) for the task."}
@@ -123,7 +115,11 @@ class DataTrainingArguments:
         default=None, 
         metadata={"help": "Target language id for translation."}
     )
-    output_dpath: Optional[str] = field(
+    test_fpath: Optional[str] = field(
+        default=None, 
+        metadata={"help": "Target language id for translation."}
+    )
+    output_fpath: Optional[str] = field(
         default=None, 
         metadata={"help": "Target language id for translation."}
     )

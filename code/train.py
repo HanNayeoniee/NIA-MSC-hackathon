@@ -16,6 +16,9 @@
 import logging
 import os
 import sys
+import random
+import torch
+import numpy as np
 from dataclasses import dataclass, field
 from typing import Optional, Union, List
 
@@ -70,6 +73,17 @@ def handle_metrics(split, metrics, output_dir):
     save_json(metrics, os.path.join(output_dir, f"{split}_results.json"))
 
 
+def seed_everything(seed: int = 42):
+    """Random seed(Reproducibility)"""
+    random.seed(seed)                              
+    np.random.seed(seed)                           
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    torch.manual_seed(seed)                        
+    torch.cuda.manual_seed(seed)  # type: ignore    
+    torch.backends.cudnn.deterministic = True  # type: ignore
+    torch.backends.cudnn.benchmark = False  # type: ignore
+
+
 def main():
     # See all possible arguments in src/transformers/training_args.py
     # or by passing the --help flag to this script.
@@ -84,7 +98,7 @@ def main():
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     
-    training_args.output_dir = data_args.output_dpath
+    training_args.output_dir = data_args.output_fpath
     model_args.model_name_or_path = data_args.pretrained_model
 
     check_output_dir(training_args)
@@ -131,7 +145,8 @@ def main():
     )
     
     # Add special tokens
-    special_tokens_dict = {'additional_special_tokens': ['<user>', '<agent>', '<memory>', '</memory>', '<empty>', '<dialogue>', '</dialogue>']}
+    # special_tokens_dict = {'additional_special_tokens': ['<user>', '<agent>', '<memory>', '</memory>', '<empty>', '<dialogue>', '</dialogue>']}
+    special_tokens_dict = {'additional_special_tokens': ['<user>', '<agent>', '<user_memory>', '</user_memory>', '<agent_memory>', '</agent_memory>', '<empty>', '<dialogue>', '</dialogue>']}
     tokenizer.add_special_tokens(special_tokens_dict)
     print("#" * 30)
     print("Len tokenzier ==> ", len(tokenizer))
@@ -279,7 +294,7 @@ def main():
         ),
         compute_metrics=compute_metrics_fn,
         tokenizer=tokenizer,
-        
+        train_dataloader=training_args.train_dataloader
     )
 
     
@@ -377,4 +392,5 @@ def _mp_fn(index):
 
 
 if __name__ == "__main__":
+    seed_everything(42)
     main()
