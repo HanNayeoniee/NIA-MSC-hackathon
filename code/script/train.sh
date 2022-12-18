@@ -5,14 +5,14 @@ export CUDA_DEVICE_ORDER=PCI_BUS_ID
 PRETRAIN_MODEL=../model/etri_t5
 
 DATASET_DIR=../dataset/nia_dataset/
-TRAIN_PATH=$DATASET_DIR/train.jsonl
-DEV_PATH=$DATASET_DIR/valid.jsonl
+TRAIN_PATH=$DATASET_DIR/train_memory2.jsonl
+DEV_PATH=$DATASET_DIR/valid_memory2.jsonl
 
 
 ###### 경로 수정
-TRAIN_OUTPUT_PATH=../model/1216_shuffle/ 
+TRAIN_OUTPUT_PATH=../model/1219_memory/ 
 
-# mkdir $TRAIN_OUTPUT_PATH
+mkdir $TRAIN_OUTPUT_PATH
 
 
 cd ..
@@ -22,7 +22,7 @@ python train.py \
 --pretrained_model $PRETRAIN_MODEL \
 --train_fpath $TRAIN_PATH \
 --dev_fpath $DEV_PATH \
---output_dpath $TRAIN_OUTPUT_PATH \
+--output_fpath $TRAIN_OUTPUT_PATH \
 \
 --do_train \
 --model_name_or_path $PRETRAIN_MODEL \
@@ -32,6 +32,7 @@ python train.py \
 --num_train_epochs 3.0 \
 --n_gpu 3 \
 --parallel_mode ParallelMode.NOT_DISTRIBUTED \
+--train_dataloader random \
 --do_predict \
 --predict_with_generate
 # popd

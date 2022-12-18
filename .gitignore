@@ -188,3 +188,6 @@ poetry.toml
 dataset/
 model/
 runs/
+code/input/
+code/output/
+code_error/
