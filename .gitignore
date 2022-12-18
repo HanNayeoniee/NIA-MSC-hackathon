@@ -183,7 +183,7 @@ poetry.toml
 
 
 # Added by Nayeon
-# *.log
+*.log
 *.tar.gz
 dataset/
 model/
