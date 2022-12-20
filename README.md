@@ -13,6 +13,7 @@
 ## Docker
 
 ```bash
+tar -zxvf nia_image.tar.gz
 
 docker load -i nia_image.tar
 
