@@ -4,7 +4,15 @@ import glob
 import pandas as pd
 from tqdm import tqdm
 import argparse
-from submit import *
+from submit import predict_utterace
+import time
+
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+os.system('export GIT_PYTHON_REFRESH=quiet')
+
+PBERT = SentenceTransformer('../model/pbert_iq_ns', device='cuda')
 
 def json_load(path):
     with open(path, "r", encoding="utf-8") as f:
@@ -16,6 +24,18 @@ def createFolder(directory):
             os.makedirs(directory)
     except OSError:
         print ('Error: Creating directory. ' +  directory)
+        
+def comp_similarity(query, docs):
+    global PBERT
+    
+    query_vec = PBERT.encode(query)
+    docs_vec = PBERT.encode(docs)
+    result = []
+    for cnt, d_vec in enumerate(docs_vec):
+        cos_sim =cosine_similarity([query_vec,d_vec])[0][1]
+        result.append((cos_sim, cnt))
+    result= sorted(result, reverse=True)
+    return [{'utterance':docs[i[1]] ,'score':i[0]} for i in result]
 
 
 def preprocessing_dialog(dialog):
@@ -53,7 +73,9 @@ def preprocessing_dialog(dialog):
     return new_dialog
 
 
-def preprocessing_input(utterance):
+def preprocessing_input(utterance, memory_list):
+    global PBERT
+    
     utt1 = {"speaker": "speaker1",
             "utterance": "<empty>",
             "summary": ""}
@@ -73,40 +95,27 @@ def preprocessing_input(utterance):
         
     # 인퍼런스 입력 포매팅
     data = total_utt
-    user_memory = ""
-    agent_memory = ""
+    in_str = ""
     
-    for i in range(len(data)):
-        if data[i]["summary"]:
-            if data[i]["speaker"] == "speaker1":
-                agent_memory += data[i]["summary"].strip()
-            else:
-                user_memory += data[i]["summary"].strip()
-        
-        if user_memory:
-            in_str = f"<user_memory>{user_memory}</user_memory>"
-        else:
-            in_str = "<user_memory><empty></user_memory>"
-            
-        if agent_memory:
-            in_str += f"<agent_memory>{agent_memory}</agent_memory><dialogue>입력:"
-        else:
-            in_str += "<agent_memory><empty></agent_memory><dialogue>입력:"
-        
-
-        in_str += "<user>"
-        in_str += data[5]["utterance"]
-        in_str += "<agent>"
-        in_str += data[4]["utterance"]
-        in_str += "<user>"
-        in_str += data[3]["utterance"]
-        in_str += "<agent>"
-        in_str += data[2]["utterance"]
-        in_str += "<user>"
-        in_str += data[1]["utterance"]
-        in_str += "<agent>"
-        in_str += data[0]["utterance"]
-        in_str += "</dialogue>"
+    utterance_3 = " [SEP] ".join([data[0]["utterance"], data[1]["utterance"], data[2]["utterance"]])
+    
+    memory = comp_similarity(utterance_3, memory_list)
+    memory = memory[0]["utterance"]
+    
+    in_str += f"<memory>{memory}</memory><dialogue>입력:"
+    in_str += "<user>"
+    in_str += data[5]["utterance"]
+    in_str += "<agent>"
+    in_str += data[4]["utterance"]
+    in_str += "<user>"
+    in_str += data[3]["utterance"]
+    in_str += "<agent>"
+    in_str += data[2]["utterance"]
+    in_str += "<user>"
+    in_str += data[1]["utterance"]
+    in_str += "<agent>"
+    in_str += data[0]["utterance"]
+    in_str += "</dialogue>"
         
     return total_utt, in_str
 
@@ -121,6 +130,7 @@ def main(args):
 
 
     for file_path in file_list:
+        start_time = time.time()
         file_name = file_path.split("/")[-1][:-5]
         data = json_load(file_path)
         
@@ -142,10 +152,11 @@ def main(args):
             
             # 인퍼런스 결과
             new_dialog = preprocessing_dialog(dialog)
-            utterance, in_str = preprocessing_input(new_dialog[-6:])
+            user_memory = session["prevAggregatedpersonaSummary"]["speaker2"]
+            utterance, in_str = preprocessing_input(new_dialog[-6:], user_memory)
 
-            MODEL_NAME = "../model/1216_shuffle"
-            pred = predict_utterace(MODEL_NAME, in_str)
+            # MODEL_NAME = "../model/1216_shuffle"
+            pred = predict_utterace(in_str)
 
             sent_type.append("speaker1_generated")
             sent.append(pred)
@@ -160,14 +171,21 @@ def main(args):
         save_path = os.path.join(out_folder, file_name + ".xlsx")
         res_df.to_excel(save_path, index=False)
         # print("saved:", save_path)
+        
+        print(f"{file_path}: {time.time() - start_time}")
+        
     print("="*20 + "SAVED ALL PREDICTIONS" + "="*20)
 
 
 if __name__ == "__main__":
+    final_start_time = time.time()
+    
     # export GIT_PYTHON_REFRESH=quiet
     parser = argparse.ArgumentParser(description='Make a Submission')
-    parser.add_argument("--input_folder", type=str, default="./mydata/ver2", help="입력 데이터 경로")
-    parser.add_argument("--output_folder", type=str, default="klue/roberta-base", help="출력 데이터 저장 경로")
+    parser.add_argument("--input_folder", type=str, default="./input", help="입력 데이터 경로")
+    parser.add_argument("--output_folder", type=str, default="./output", help="출력 데이터 저장 경로")
     args = parser.parse_args()
 
     main(args)
+    
+    print("run time:", time.time() - final_start_time)
