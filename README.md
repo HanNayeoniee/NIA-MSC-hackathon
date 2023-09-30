@@ -7,7 +7,7 @@
 
 
 ## 학습된 모델 다운로드
-- [구글 드라이브](https://drive.google.com/drive/folders/13I5IF2bWKRa0eS628QAlveFtnLzn1c2Y)에서 hackathon.tar.gz 파일 다운로드
+- [구글 드라이브](https://drive.google.com/drive/folders/1Do77tYUCBV1AOygbawTIumSAlrQKNLEB?usp=sharing)에서 hackathon.tar.gz 파일 다운로드
 - `tar -zxvf hackathon.tar.gz` 명령어로 압축 해제
 - 압축이 해제된 폴더를 프로젝트 폴더로 설정
 
